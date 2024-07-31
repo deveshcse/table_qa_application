@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+    <h2>Home</h2>
+    <p>Hello, {{ userid }}!</p>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    {% if user_role_id == 1000 %}  <!-- Since 1000 is Admin role ID -->
+        <br><a href="{{ url_for('register') }}">Register New User</a>
+    {% endif %}
+</body>
+</html>
