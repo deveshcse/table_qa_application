@@ -47,11 +47,13 @@ mysql = MySQL(app)
 
 SESSION_TIMEOUT_MINUTES = 1
 
+
 def log_unsuccessful_attempt(client_ip, reason):
     cursor = mysql.connection.cursor()
     cursor.execute('INSERT INTO audit_table (client_ip, reason_of_failure) VALUES (%s, %s)', (client_ip, reason))
     mysql.connection.commit()
     logger.warning(f"Unsuccessful attempt from {client_ip}: {reason}")
+
 
 def create_session(user_id, client_ip):
     session_id = str(uuid.uuid4())
@@ -63,12 +65,18 @@ def create_session(user_id, client_ip):
     logger.info(f"Session created: user_id={user_id}, session_id={session_id}, client_ip={client_ip}")
     return session_id
 
+
 def update_session_time(session_id):
     cursor = mysql.connection.cursor()
     cursor.execute('UPDATE user_session_table SET session_updated = %s WHERE session_id = %s',
                    (datetime.now(), session_id))
     mysql.connection.commit()
     logger.info(f"Session updated: session_id={session_id}")
+
+
+def get_session_expiry():
+    return datetime.now() + timedelta(minutes=SESSION_TIMEOUT_MINUTES)
+
 
 @app.route('/')
 def home():
@@ -97,7 +105,7 @@ def home():
                 cursor.execute('SELECT session_updated FROM user_session_table WHERE session_id = %s', (session_id,))
                 updated_record = cursor.fetchone()
                 logger.debug(f"Updated session_updated time: {updated_record['session_updated']}")
-                logger.debug(f"The current session {session_id} for user id {session_record['user_id']} will be expired on {updated_record['session_updated']+timedelta(minutes=SESSION_TIMEOUT_MINUTES)}")
+                logger.debug(f"The current session {session_id} for user id {session_record['user_id']} will be expired on {updated_record['session_updated'] + timedelta(minutes=SESSION_TIMEOUT_MINUTES)}")
 
                 # Retrieve user role from the database
                 cursor.execute('SELECT user_role_id FROM users WHERE id = %s', (session_record['user_id'],))
@@ -119,11 +127,10 @@ def login():
         cursor.execute('SELECT * FROM users WHERE userid = %s', (userid,))
         account = cursor.fetchone()
         if account:
-            # print(account['userid'], account['password'])
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            cookie_expires = datetime.now() + timedelta(minutes=5)
             if hashed_password == account['password']:
                 session_id = create_session(account['id'], client_ip)
+                cookie_expires = get_session_expiry()
                 resp = make_response(redirect(url_for('home')))
                 resp.set_cookie(key="session_id", value=session_id, expires=cookie_expires.strftime("%Y-%m-%d %H:%M:%S"), path='/')
                 flash('Logged in successfully!', 'success')
@@ -136,6 +143,7 @@ def login():
             log_unsuccessful_attempt(client_ip, 'User not found')
             flash('User not found!', 'danger')
     return render_template('login.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -157,13 +165,14 @@ def register():
             logger.warning(f"Registration attempt for existing user: userid={userid}")
         else:
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            cursor.execute('INSERT INTO users (userid, password, user_role_id, active) VALUES (%s, %s, %s, %s)',
-                           (userid, hashed_password, user_role_id, True))
+            cursor.execute('INSERT INTO users (userid, password, user_role_id) VALUES (%s, %s, %s)',
+                           (userid, hashed_password, user_role_id))
             mysql.connection.commit()
             flash('You have successfully registered!', 'success')
             logger.info(f"New user registered: userid={userid}, user_role_id={user_role_id}")
             return redirect(url_for('login'))
     return render_template('register.html')
+
 
 @app.route('/logout')
 def logout():
@@ -180,6 +189,7 @@ def logout():
         return resp
     logger.info("Logout attempt without a valid session.")
     return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
