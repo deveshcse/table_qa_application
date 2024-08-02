@@ -47,7 +47,7 @@
 from flask import Flask
 from flask_mysqldb import MySQL
 from authentication import authentication_bp
-from pdf_processing import pdf_processing_bp
+from processing import processing_bp
 import os
 from configparser import ConfigParser
 
@@ -68,7 +68,7 @@ mysql = MySQL(app)
 
 # Register blueprints
 app.register_blueprint(authentication_bp)
-app.register_blueprint(pdf_processing_bp)
+app.register_blueprint(processing_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

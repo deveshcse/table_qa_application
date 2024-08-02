@@ -72,12 +72,12 @@ def create_session(user_id, client_ip):
     return session_id
 
 
-def update_session_time(session_id):
-    cursor = mysql.connection.cursor()
-    cursor.execute('UPDATE user_session_table SET session_updated = %s WHERE session_id = %s',
-                   (datetime.now(), session_id))
-    mysql.connection.commit()
-    logger.info(f"Session updated: session_id={session_id}")
+# def update_session_time(session_id):
+#     cursor = mysql.connection.cursor()
+#     cursor.execute('UPDATE user_session_table SET session_updated = %s WHERE session_id = %s',
+#                    (datetime.now(), session_id))
+#     mysql.connection.commit()
+#     logger.info(f"Session updated: session_id={session_id}")
 
 
 def get_session_expiry():
