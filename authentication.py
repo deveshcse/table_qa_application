@@ -11,20 +11,34 @@ from logging.handlers import RotatingFileHandler
 
 authentication_bp = Blueprint('authentication', __name__)
 # Configure logging
-log_file_path = 'app.log'
-handler = RotatingFileHandler(log_file_path, maxBytes=10000, backupCount=1)
-handler.setLevel(logging.DEBUG)
+# log_file_path = 'app.log'
+# handler = RotatingFileHandler(log_file_path, maxBytes=10000, backupCount=1)
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+#
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# logger.addHandler(handler)
+#
+# # Additionally, log to console
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.DEBUG)
+# console_handler.setFormatter(formatter)
+# logger.addHandler(console_handler)
+
+
+# Define the formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(handler)
-
-# Additionally, log to console
+# Create a console handler
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(formatter)
+
+# Create and configure the logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 
 app = Flask(__name__)
